@@ -46,6 +46,11 @@ audio_smoothing = {
 }
 SMOOTH_FACTOR = config.smooth_factor  # 余韻の強さ（0.9に近いほど長く残る）
 
+# 月の動き用の変数
+moon_orbit_angle = 0
+moon_base_x = WIDTH // 2
+moon_base_y = HEIGHT // 2
+
 # パーティクルクラス
 class Particle:
     def __init__(self, x, y):
@@ -305,11 +310,48 @@ def main():
         center = (WIDTH // 2, HEIGHT // 2)
         
         # --- <<< 修正: volumeがNaNでないことを確認 ---
-        # 月を最初に描画（背景として）
+        # 月をゆったりと軌道運動させながら音楽に反応させる
+        global moon_orbit_angle, moon_base_x, moon_base_y
+        
+        # ゆっくりとした軌道運動（大きな円を描く）
+        moon_orbit_angle += 0.002 + bass_norm * 0.004  # 速度を調整
+        orbit_radius = 80 + mid_norm * 40  # 音楽に応じて軌道半径変化
+        
+        moon_x = moon_base_x + orbit_radius * math.cos(moon_orbit_angle)
+        moon_y = moon_base_y + orbit_radius * math.sin(moon_orbit_angle * 0.7)  # 楕円軌道
+        
+        # 微細な振動（とても控えめ）
+        gentle_vibration_x = bass_norm * 3 * math.sin(pygame.time.get_ticks() * 0.002)
+        gentle_vibration_y = high_norm * 2 * math.cos(pygame.time.get_ticks() * 0.0015)
+        
+        final_moon_x = moon_x + gentle_vibration_x
+        final_moon_y = moon_y + gentle_vibration_y
+        
+        # サイズも控えめに変化
+        scale_factor = 1.0 + volume * 0.1
+        
+        # 黄色のリングを月の周りに描画
+        ring_radius = int(70 * scale_factor)
+        ring_thickness = max(2, int(4 + mid_norm * 3))
+        yellow_color = (255, 255, 100)  # 黄色
+        ring_alpha = min(180, int(100 + volume * 80))
+        
+        # リング用のサーフェス
+        ring_surface = pygame.Surface((ring_radius * 2 + 20, ring_radius * 2 + 20), pygame.SRCALPHA)
+        pygame.draw.circle(ring_surface, (*yellow_color, ring_alpha), 
+                          (ring_radius + 10, ring_radius + 10), ring_radius, ring_thickness)
+        screen.blit(ring_surface, (int(final_moon_x - ring_radius - 10), 
+                                  int(final_moon_y - ring_radius - 10)))
+        
+        # 月を描画
         if moon_img:
-            screen.blit(moon_img, moon_rect)
+            scaled_moon = pygame.transform.scale(moon_img, 
+                (int(100 * scale_factor), int(100 * scale_factor)))
+            vibrated_rect = scaled_moon.get_rect(center=(int(final_moon_x), int(final_moon_y)))
+            screen.blit(scaled_moon, vibrated_rect)
         else:
-            pygame.draw.circle(screen, WHITE, center, 50)
+            size = int(50 * scale_factor)
+            pygame.draw.circle(screen, WHITE, (int(final_moon_x), int(final_moon_y)), size)
         
         # 音響エフェクトを月の周りに描画（月の部分を除外）
         if not np.isnan(volume):
@@ -340,7 +382,7 @@ def main():
                         
                         s.blit(mask_surface, (0, 0))
                 
-                screen.blit(s, (center[0] - glow_radius, center[1] - glow_radius), special_flags=pygame.BLEND_RGBA_ADD)
+                screen.blit(s, (int(final_moon_x - glow_radius), int(final_moon_y - glow_radius)), special_flags=pygame.BLEND_RGBA_ADD)
 
         pygame.display.flip()
         
