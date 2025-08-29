@@ -1,0 +1,66 @@
+{
+  "display": {
+    "width": 800,
+    "height": 800,
+    "fps": 60,
+    "window_name": "StreamDiffusion",
+    "display_width": 2048,
+    "display_height": 2048
+  },
+  "audio": {
+    "chunk": 2048,
+    "rate": 44100,
+    "format": "paInt16",
+    "channels": 1,
+    "bass_range": [60, 250],
+    "mid_range": [250, 2000],
+    "high_range": [2000, 10000],
+    "smooth_factor": 0.85,
+    "ripple_threshold": 0.6
+  },
+  "network": {
+    "host": "127.0.0.1",
+    "frame_port": 65433,
+    "tcp_port": 65432
+  },
+  "streamdiffusion": {
+    "sd_side_length": 512,
+    "model_id": "stabilityai/sd-turbo",
+    "use_kohaku_model": false,
+    "guidance_scale": 0.6,
+    "delta": 3.5,
+    "num_inference_steps": 16,
+    "optimize_for_speed": true,
+    "use_random_seed": true
+  },
+  "creativity": {
+    "frame_blend_alpha": 0.3,
+    "max_frame_history": 2,
+    "creativity_update_interval": 30,
+    "themes": [
+      "nature and wildlife",
+      "fantasy creatures", 
+      "underwater world",
+      "magical forest",
+    ],
+    "creative_modifiers": [
+      "vibrant colors", "soft pastels", "neon glow", "watercolor style", "oil painting",
+      "abstract expressionism", "surreal", "dreamy atmosphere", "crystalline structures",
+      "flowing liquid", "particle effects", "light rays", "ethereal mist", "iridescent",
+      "holographic", "prismatic", "luminous", "cosmic energy", "electric blue",
+      "golden hour", "moonlit", "aurora colors", "fractal patterns", "organic shapes"
+    ]
+  },
+  "mandala": {
+    "num_wave_points": 360,
+    "num_wave_layers": 8,
+    "wave_frequencies": [2, 3, 5, 8, 13, 21],
+    "num_particles": 15,
+    "smooth_factor_mandala": 0.88
+  },
+  "paths": {
+    "gallery_dir": "gallery",
+    "models_dir": "./models",
+    "moon_image": "moon.png"
+  }
+}

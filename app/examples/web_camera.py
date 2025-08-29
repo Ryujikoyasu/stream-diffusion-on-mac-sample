@@ -7,6 +7,8 @@ import os
 import json
 from datetime import datetime
 import pickle
+import sys
+sys.path.append('../..')
 
 import cv2
 import numpy as np
@@ -14,59 +16,43 @@ from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
 
 from ..stream_diffusion import StreamDiffusion
+from config import config
 
 # Load environment variables
 load_dotenv()
 
-SD_SIDE_LENGTH = 512
+SD_SIDE_LENGTH = config.sd_side_length
 OUTPUT_IMAGE_FILE = "output.png"
-HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+HOST = config.host
+PORT = config.tcp_port
 
 # フレーム受信設定
-FRAME_HOST = "127.0.0.1"
-FRAME_PORT = 65433  # main_moon.pyからのフレーム受信用
+FRAME_HOST = config.host
+FRAME_PORT = config.frame_port
 
-# Themes for initial prompts
-THEMES = [
-    "nature and wildlife",
-    "cyberpunk city",
-    "fantasy creatures",
-    "space exploration",
-    "underwater world",
-    "steampunk invention",
-    "magical forest",
-    "futuristic technology"
-]
+# Themes and modifiers from config
+THEMES = config.themes
+CREATIVE_MODIFIERS = config.creative_modifiers
 
-# Random creative modifiers for variety
-CREATIVE_MODIFIERS = [
-    "vibrant colors", "soft pastels", "neon glow", "watercolor style", "oil painting",
-    "abstract expressionism", "surreal", "dreamy atmosphere", "crystalline structures",
-    "flowing liquid", "particle effects", "light rays", "ethereal mist", "iridescent",
-    "holographic", "prismatic", "luminous", "cosmic energy", "electric blue",
-    "golden hour", "moonlit", "aurora colors", "fractal patterns", "organic shapes"
-]
-
-# Image history for smooth transitions (limited to 3 frames)
+# Image history for smooth transitions
 FRAME_HISTORY = []
-MAX_FRAME_HISTORY = 3
+MAX_FRAME_HISTORY = config.max_frame_history
 
 # History of successful prompts
 PROMPT_HISTORY = []
 MAX_HISTORY = 10
 
 # フレームブレンド設定
-FRAME_BLEND_ALPHA = 0.3  # 新フレームの影響率
+FRAME_BLEND_ALPHA = config.frame_blend_alpha
 
 # Path for saving gallery images
-GALLERY_DIR = "gallery"
+GALLERY_DIR = config.gallery_dir
 os.makedirs(GALLERY_DIR, exist_ok=True)
 
 # ウィンドウ表示設定
-WINDOW_NAME = "StreamDiffusion"
-DISPLAY_WIDTH = 2048  # 表示用ウィンドウサイズを2倍に
-DISPLAY_HEIGHT = 2048
+WINDOW_NAME = config.get('display.window_name', 'StreamDiffusion')
+DISPLAY_WIDTH = config.display_width
+DISPLAY_HEIGHT = config.display_height
 window_initialized = False
 
 
@@ -195,9 +181,9 @@ def run_server(stream, enhance_fn):
                         stream.prepare(
                             prompt=enhanced_prompt,
                             negative_prompt="low quality, bad quality, blurry, low resolution",
-                            num_inference_steps=25,  # リアルタイム性向上
-                            guidance_scale=0.6,      # クリエイティビティ向上
-                            delta=1.5,               # 変化を大きく
+                            num_inference_steps=config.num_inference_steps,
+                            guidance_scale=config.guidance_scale,
+                            delta=config.delta,
                         )
                         
                         # Send acknowledgment back to client
@@ -239,9 +225,9 @@ def run_controls(stream, enhance_fn):
         stream.prepare(
             prompt=new_prompt,
             negative_prompt="low quality, bad quality, blurry, low resolution",
-            num_inference_steps=25,
-            guidance_scale=0.6,
-            delta=1.5,
+            num_inference_steps=config.num_inference_steps,
+            guidance_scale=config.guidance_scale,
+            delta=config.delta,
         )
     
     def on_key_s():
@@ -502,9 +488,9 @@ def prompt_input_thread(stream, enhance_fn):
             stream.prepare(
                 prompt=new_prompt,
                 negative_prompt="low quality, bad quality, blurry, low resolution",
-                num_inference_steps=20,
-                guidance_scale=0.5,
-                delta=2.0,
+                num_inference_steps=config.num_inference_steps,
+                guidance_scale=config.guidance_scale,
+                delta=config.delta,
             )
             
             print(f"🔄 プロンプトを更新しました: {new_prompt}")
@@ -560,7 +546,7 @@ def main():
             return
     
     frame_count = 0
-    creativity_update_interval = 30  # 30フレーム毎にクリエイティブ要素更新
+    creativity_update_interval = config.creativity_update_interval  # configから読み込み
     # save_interval = 100  # 自動保存を無効化
     
     # プロンプト入力スレッドを開始
@@ -662,9 +648,9 @@ def main():
                         stream.prepare(
                             prompt=creative_prompt,
                             negative_prompt="low quality, bad quality, blurry, low resolution",
-                            num_inference_steps=20,
-                            guidance_scale=0.5,
-                            delta=2.0,
+                            num_inference_steps=config.num_inference_steps,
+                            guidance_scale=config.guidance_scale,
+                            delta=config.delta,
                         )
                     
                     # 自動保存を無効化
@@ -691,9 +677,9 @@ def main():
                 stream.prepare(
                     prompt=add_creative_randomness(current_prompt),
                     negative_prompt="low quality, bad quality, blurry, low resolution",
-                    num_inference_steps=25,
-                    guidance_scale=0.6,
-                    delta=1.5,
+                    num_inference_steps=config.num_inference_steps,
+                    guidance_scale=config.guidance_scale,
+                    delta=config.delta,
                 )
             elif key == ord('s') and FRAME_HISTORY:
                 filename = save_to_gallery(FRAME_HISTORY[-1], current_prompt)
@@ -730,9 +716,9 @@ def main():
                     stream.prepare(
                         prompt=add_creative_randomness(new_prompt),
                         negative_prompt="low quality, bad quality, blurry, low resolution", 
-                        num_inference_steps=20,
-                        guidance_scale=0.5,
-                        delta=2.0,
+                        num_inference_steps=config.num_inference_steps,
+                        guidance_scale=config.guidance_scale,
+                        delta=config.delta,
                     )
                     print(f"🔄 プロンプトを更新しました: {new_prompt}")
                     

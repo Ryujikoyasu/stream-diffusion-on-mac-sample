@@ -6,30 +6,31 @@ import socket
 import threading
 import pickle
 import time
+from config import config
 
-# --- 設定項目 ---
+# --- 設定項目（config.jsonから読み込み） ---
 # スクリーン設定
-WIDTH, HEIGHT = 800, 800
-FPS = 60
+WIDTH, HEIGHT = config.width, config.height
+FPS = config.fps
 
 # オーディオ設定
-CHUNK = 1024 * 2
-RATE = 44100
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
+CHUNK = config.audio_chunk
+RATE = config.audio_rate
+FORMAT = pyaudio.paInt16  # pyaudioの定数なのでそのまま
+CHANNELS = config.audio_channels
 
 # TCP設定
-FRAME_HOST = "127.0.0.1"
-FRAME_PORT = 65433  # web_camera.pyとは別のポート
+FRAME_HOST = config.host
+FRAME_PORT = config.frame_port
 
 # 色
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # --- オーディオリアクティブのパラメータ ---
-BASS_RANGE = (60, 250)
-MID_RANGE = (250, 2000)
-HIGH_RANGE = (2000, 10000)
+BASS_RANGE = tuple(config.bass_range)
+MID_RANGE = tuple(config.mid_range)
+HIGH_RANGE = tuple(config.high_range)
 
 # 余韻効果用の値保持
 audio_smoothing = {
@@ -38,12 +39,12 @@ audio_smoothing = {
     'high': 0.0,
     'volume': 0.0
 }
-SMOOTH_FACTOR = 0.88  # 曼荼羅用にさらに長い余韻
+SMOOTH_FACTOR = config.get('mandala.smooth_factor_mandala', 0.88)  # 曼荼羅用にさらに長い余韻
 
 # 美しい波の曼荼羅設定
-NUM_WAVE_POINTS = 360  # 滑らかな波のための点数
-NUM_WAVE_LAYERS = 8    # 波の層数
-WAVE_FREQUENCIES = [2, 3, 5, 8, 13, 21]  # フィボナッチ数列による波の周波数
+NUM_WAVE_POINTS = config.num_wave_points  # 滑らかな波のための点数
+NUM_WAVE_LAYERS = config.num_wave_layers    # 波の層数
+WAVE_FREQUENCIES = config.wave_frequencies  # フィボナッチ数列による波の周波数
 
 # 波の層クラス
 class WaveLayer:

@@ -1,27 +1,45 @@
 from typing import Literal
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 
 from .utils import StreamDiffusionWrapper
+from config import config
 
 
 class StreamDiffusion:
     def __init__(
         self,
-        model_id_or_path: str = "stabilityai/sd-turbo",
+        model_id_or_path: str = None,
         prompt: str = "moon",
         negative_prompt: str = "human, person, people, face, portrait, girl, boy, man, woman, child, body, hands, fingers, nsfw, figure, silhouette, shadow person, character, anime character, manga, anime style, humanoid, anthropomorphic, human-like, human shape, facial features, eyes, mouth, nose, hair, clothing, dress, outfit, costume,standing figure, walking figure, sitting figure,1girl, 2girls, multiple girls, multiple people,human elements, human presence, human form".replace('\n', '').replace(' ', ''),
         acceleration: Literal["none", "xformers", "tensorrt"] = "none",
         use_denoising_batch: bool = True,
         use_tiny_vae: bool = True,
-        guidance_scale: float = 0.6,
-        delta: float = 1.5,
-        local_cache_dir: str = "./models",
+        guidance_scale: float = None,
+        delta: float = None,
+        local_cache_dir: str = None,
         # ref版の設定を追加（互換性オプション）
-        optimize_for_speed: bool = True,
-        use_kohaku_model: bool = False,
+        optimize_for_speed: bool = None,
+        use_kohaku_model: bool = None,
     ) -> None:
         self.prompt = prompt
+        
+        # 設定ファイルからデフォルト値を取得
+        if model_id_or_path is None:
+            model_id_or_path = config.model_id
+        if guidance_scale is None:
+            guidance_scale = config.guidance_scale
+        if delta is None:
+            delta = config.delta
+        if local_cache_dir is None:
+            local_cache_dir = config.models_dir
+        if optimize_for_speed is None:
+            optimize_for_speed = config.get('streamdiffusion.optimize_for_speed', True)
+        if use_kohaku_model is None:
+            use_kohaku_model = config.get('streamdiffusion.use_kohaku_model', False)
         
         # デバイス設定（StreamDiffusionのCUDAイベント問題を回避するためCPUを使用）
         # TODO: MPSサポートのためにStreamDiffusionライブラリの修正が必要
@@ -63,7 +81,7 @@ class StreamDiffusion:
                 use_denoising_batch=use_denoising_batch,
                 use_tiny_vae=use_tiny_vae,
                 cfg_type="none" if optimize_for_speed else ("self" if guidance_scale > 1.0 else "none"),
-                seed=-1,  # ランダムシード有効化
+                seed=-1 if config.use_random_seed else 2,  # 設定ファイルからランダムシード設定
                 local_cache_dir=local_cache_dir,
             )
             
