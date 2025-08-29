@@ -39,9 +39,13 @@
     "creativity_update_interval": 30,
     "themes": [
       "nature and wildlife",
+      "cyberpunk city",
       "fantasy creatures", 
+      "space exploration",
       "underwater world",
+      "steampunk invention",
       "magical forest",
+      "futuristic technology"
     ],
     "creative_modifiers": [
       "vibrant colors", "soft pastels", "neon glow", "watercolor style", "oil painting",
