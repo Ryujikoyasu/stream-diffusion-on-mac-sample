@@ -119,6 +119,14 @@ class Config:
     def use_random_seed(self) -> bool:
         return self.get('streamdiffusion.use_random_seed', True)
     
+    @property
+    def optimize_for_speed(self) -> bool:
+        return self.get('streamdiffusion.optimize_for_speed', True)
+    
+    @property
+    def use_kohaku_model(self) -> bool:
+        return self.get('streamdiffusion.use_kohaku_model', False)
+    
     # Creativity settings
     @property
     def frame_blend_alpha(self) -> float:

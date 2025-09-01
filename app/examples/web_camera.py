@@ -507,6 +507,9 @@ def prompt_input_thread(stream, enhance_fn):
 def main():
     global FRAME_HISTORY, PROMPT_HISTORY, current_prompt
     
+    # 1個前の生成画像を保存する変数
+    previous_generated_image = None
+    
     # 初期プロンプト生成
     base_prompt = generate_random_prompt()
     current_prompt = add_creative_randomness(base_prompt)
